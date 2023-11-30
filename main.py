@@ -1,8 +1,8 @@
 from typing import Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
-from fastapi import Body, FastAPI, HTTPException
+from fastapi import Body, FastAPI, HTTPException, Path, Query
 from fastapi.responses import HTMLResponse
 
 app = FastAPI(
@@ -14,11 +14,26 @@ app = FastAPI(
 
 class Movie(BaseModel):
     id: Optional[int] = None
-    title: str
-    overview: str
-    year: int
-    rating: float
-    category: str
+    title: str = Field(min_length=3, max_length=15)
+    overview: str = Field(min_length=15, max_length=50)
+    year: int = Field(le=2022)
+    rating: float = Field(ge=1, le=10)
+    category: str = Field(min_length=15, max_length=35)
+
+    model_config = {
+        "json_schema_extra": {
+            "examples": [
+                {
+                    "id": 1,
+                    "title": "Mi Pelicula",
+                    "overview": "Descripcion de la pelicula",
+                    "year": 2022,
+                    "rating": 9.9,
+                    "category": "Acción",
+                }
+            ]
+        }
+    }
 
 
 movies = [
@@ -52,7 +67,7 @@ def get_movies():
 
 
 @app.get('/movies/{id}', tags=['movies'])
-def get_movie(id: int):
+def get_movie(id: int = Path(ge=1, le=2000)):
     for item in movies:
         if item["id"] == id:
             return item
@@ -60,7 +75,7 @@ def get_movie(id: int):
 
 
 @app.get('/movies/', tags=['movies'])  # Se pone la barra al final de la url para indicar que vamos a recibir parámetros
-def get_movies_by_category(category: str):
+def get_movies_by_category(category: str = Query(min_length=5, max_length=15)):
     return [movie for movie in movies if movie['category'] == category]
 
 
