@@ -1,7 +1,8 @@
 from typing import List
 
-from fastapi import APIRouter, HTTPException, Path, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Path, Query, status
 from fastapi.responses import HTMLResponse, JSONResponse
+from models.bearer import JWTBearer
 from models.movies import Movie
 from utils.loads import load_json_data
 
@@ -13,7 +14,9 @@ def message():
     return HTMLResponse('<h1>Hello World</h1>')
 
 
-@router.get('/movies', tags=['movies'], response_model=List[Movie], status_code=200)
+@router.get(
+    '/movies', tags=['movies'], response_model=List[Movie], status_code=200, dependencies=[Depends(JWTBearer())]
+)
 def get_movies():
     return JSONResponse(
         status_code=200, content=load_json_data()
