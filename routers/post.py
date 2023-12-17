@@ -1,12 +1,10 @@
-import json
-
-from config.database import Base, SessionLocal, engine
-from fastapi import APIRouter, HTTPException, Query
-from fastapi.responses import HTMLResponse, JSONResponse
-from models.movies import Movie, MovieBD
-from models.users import User
+from config.database import SessionLocal
+from fastapi import APIRouter
+from fastapi.responses import JSONResponse
+from schemas.movies import Movie
+from schemas.users import User
+from services.movies import MovieService
 from utils.jwt_manager import create_token
-from utils.loads import json_path, load_json_data
 
 router = APIRouter()
 
@@ -24,8 +22,6 @@ def login(user: User):
 @router.post('/movies', tags=['movies'], status_code=201)
 def create_movie(movie: Movie):
     db = SessionLocal()
-    new_movie = MovieBD(**movie.model_dump())
-    db.add(new_movie)
-    db.commit()
+    new_movie = MovieService(db).create_movie(movie)
 
-    return movie
+    return new_movie
